@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jayanth Shivanandappa :: DevOps Command Center</title>
+<meta name="description" content="Cloud / DevOps Engineer portfolio ">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+/* ============================================================
+   0. ROOT VARIABLES / RESET
+   ============================================================ */
+:root{
+  --bg:#060606;
+  --bg-alt:#0d0d09;
+  --panel: rgba(20,18,10,0.55);
+  --panel-solid:#0f0e08;
+  --border: rgba(212,175,55,0.16);
+  --border-strong: rgba(212,175,55,0.38);
+
+  --cyan:#d4af37;        /* primary accent: gold */
+  --cyan-dim: rgba(212,175,55,0.35);
+  --green:#e8c547;       /* secondary accent: mild/muted yellow */
+  --green-dim: rgba(232,197,71,0.35);
+  --success:#4ade80;     /* true semantic success/ok green (status only) */
+  --success-dim: rgba(74,222,128,0.35);
+  --orange:#ff9f1c;
+  --purple:#a78bfa;
+  --red:#f87171;
+  --yellow:#ff8c42;      /* status warn: amber, distinct from brand yellow */
+
+  --text:#d9d4c4;
+  --text-dim:#8c8672;
+  --text-bright:#f7f3e8;
+
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+  --display:'Syne', sans-serif;
+
+  --radius: 14px;
+  --nav-h: 64px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:15px;
+  line-height:1.6;
+  overflow-x:hidden;
+  cursor:none;
+}
+h1,h2,h3,h4{ font-family:var(--display); color:var(--text-bright); margin:0 0 .5em; letter-spacing:.5px; }
+a{ color:var(--green); text-decoration:none; }
+p{ margin:0 0 1em; }
+ul{ margin:0; padding:0; list-style:none; }
+button, input{ font-family:var(--mono); }
+::selection{ background:var(--green); color:#000; }
+
+.section-inner{ max-width:1180px; margin:0 auto; padding:0 28px; }
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--green); margin-bottom:14px; font-weight:600;
+}
+.eyebrow::before{ content:'//'; color:var(--cyan); }
+.section-title{ font-size:clamp(28px,4vw,42px); }
+.section-head{ margin-bottom:44px; }
+
+@media (pointer:coarse){ body{ cursor:auto; } }
+@media (max-width:600px){ body{ cursor:auto !important; } }
+
+/* ============================================================
+   1. GLASSMORPHISM PANEL / CARD BASE
+   ============================================================ */
+.glass{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+}
+.glow-cyan{ box-shadow:0 0 24px -6px var(--cyan-dim); }
+.glow-green{ box-shadow:0 0 24px -6px var(--green-dim); }
+
+/* ============================================================
+   2. CUSTOM CURSOR
+   ============================================================ */
+#cursor-ring, #cursor-dot{
+  position:fixed; top:0; left:0; pointer-events:none; z-index:9999;
+  border-radius:50%; transform:translate(-50%,-50%);
+  will-change:transform;
+}
+#cursor-dot{
+  width:6px; height:6px; background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  transition:width .15s ease, height .15s ease;
+}
+#cursor-ring{
+  width:32px; height:32px; border:1.5px solid var(--cyan);
+  transition:width .18s ease, height .18s ease, border-color .18s ease, background .18s ease;
+}
+#cursor-ring.hover{
+  width:56px; height:56px; background:rgba(212,175,55,0.08);
+  border-color:var(--green);
+}
+@media (pointer:coarse), (max-width:600px){
+  #cursor-ring, #cursor-dot{ display:none; }
+}
+
+/* ============================================================
+   3. CANVAS BACKGROUND + FLOATING EMOJI
+   ============================================================ */
+#bg-canvas{
+  position:fixed; inset:0; z-index:0; opacity:.55;
+}
+
+/* ============================================================
+   4. BOOT SEQUENCE LOADER
+   ============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:10000; background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .6s ease;
+}
+#loader.hide{ opacity:0; pointer-events:none; }
+.loader-box{ width:min(560px,90vw); }
+.loader-title{
+  font-size:13px; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;
+}
+.loader-title span{ color:var(--green); }
+#boot-log{
+  height:220px; overflow:hidden; font-size:12.5px; line-height:1.7;
+  border:1px solid var(--border); border-radius:8px; padding:14px 16px;
+  background:rgba(255,255,255,0.02); margin-bottom:16px;
+}
+#boot-log div{ white-space:pre-wrap; }
+.tag-boot{ color:var(--purple); }
+.tag-info{ color:var(--cyan); }
+.tag-ok{ color:var(--success); }
+.tag-warn{ color:var(--yellow); }
+.progress-track{
+  height:6px; border-radius:4px; background:rgba(255,255,255,0.06);
+  overflow:hidden; border:1px solid var(--border);
+}
+.progress-fill{
+  height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--green));
+  box-shadow:0 0 12px var(--green); transition:width .18s linear;
+}
+.progress-label{ display:flex; justify-content:space-between; font-size:11px; margin-top:8px; color:var(--text-dim); }
+
+/* ============================================================
+   5. NAVIGATION
+   ============================================================ */
+#site-nav{
+  position:sticky; top:0; z-index:500; height:var(--nav-h);
+  background:rgba(5,8,16,0.7); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1240px; margin:0 auto; height:100%; padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+}
+.logo{
+  font-family:var(--display); font-weight:800; font-size:20px; color:var(--text-bright);
+  white-space:nowrap; display:inline-flex; align-items:center; height:100%; line-height:1;
+  flex-shrink:0;
+}
+.logo .b{ color:var(--green); }
+@keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+.nav-links{ display:flex; gap:22px; align-items:center; }
+.nav-links a{
+  color:var(--text-dim); font-size:12.5px; letter-spacing:.5px; position:relative; padding:4px 0;
+}
+.nav-links a.active{ color:var(--text-bright); }
+.nav-links a.active::after{
+  content:''; position:absolute; left:0; bottom:-4px; width:100%; height:2px;
+  background:var(--green); box-shadow:0 0 6px var(--green);
+}
+.lang-switch{
+  display:flex; align-items:center; border:1px solid var(--border-strong); border-radius:20px;
+  padding:3px; gap:2px; flex-shrink:0;
+}
+.lang-switch button{
+  background:none; border:none; cursor:pointer; color:var(--text-dim);
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.5px;
+  padding:5px 11px; border-radius:16px; transition:.2s;
+}
+.lang-switch button.active{ background:var(--green); color:#1a1400; }
+.lang-switch button:not(.active):hover{ color:var(--text-bright); }
+.mobile-lang-switch{ display:flex; justify-content:center; padding:16px 24px; border-top:1px solid var(--border); }
+
+.hamburger{
+  display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:6px;
+}
+.hamburger span{ width:22px; height:2px; background:var(--text-bright); display:block; transition:.25s; }
+.hamburger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2){ opacity:0; }
+.hamburger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+.mobile-panel{
+  max-height:0; overflow:hidden; background:var(--bg-alt); border-bottom:1px solid var(--border);
+  transition:max-height .35s ease;
+}
+.mobile-panel.open{ max-height:400px; }
+.mobile-panel a{
+  display:block; padding:14px 24px; color:var(--text); border-top:1px solid var(--border);
+  font-size:13px;
+}
+
+/* ============================================================
+   6. REVEAL ON SCROLL
+   ============================================================ */
+.reveal{ opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.visible{ opacity:1; transform:translateY(0); }
+
+section{ position:relative; z-index:2; padding:100px 0; }
+
+/* ============================================================
+   7. HERO
+   ============================================================ */
+#hero{
+  min-height:calc(100vh - var(--nav-h));
+  display:flex;
+  align-items:flex-start;
+  padding-top:clamp(72px, 14vh, 120px);
+  padding-bottom:48px;
+}
+#about{ padding-top:48px; padding-bottom:48px; }
+#skills{ padding-top:48px; }
+.hero-eyebrow{ color:var(--cyan); font-size:13px; letter-spacing:3px; margin-bottom:18px; }
+.hero-eyebrow .dot-live{ display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); margin-right:8px; animation:pulse 1.6s infinite; }
+h1.hero-name{ font-size:clamp(36px,7vw,74px); line-height:1.05; }
+h1.hero-name .accent{ color:var(--green); }
+.hero-type{ font-size:clamp(16px,2.4vw,22px); color:var(--text); min-height:34px; margin-bottom:38px; }
+.hero-type .cur{ color:var(--green); animation:blink 1s step-end infinite; }
+@keyframes blink{ 50%{ opacity:0; } }
+
+.cta-row{ display:flex; flex-wrap:wrap; gap:14px; }
+.btn{
+  font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.5px;
+  padding:14px 24px; border-radius:8px; cursor:pointer; border:1px solid var(--border-strong);
+  background:transparent; color:var(--text-bright); display:inline-flex; align-items:center; gap:9px;
+  transition:.25s;
+}
+.btn-primary{ background:linear-gradient(120deg,var(--green),var(--cyan)); color:#02140c; border:none; box-shadow:0 0 22px -4px var(--green-dim); }
+.btn-primary:hover{ filter:brightness(1.1); transform:translateY(-2px); }
+.btn:not(.btn-primary):hover{ border-color:var(--green); color:var(--green); transform:translateY(-2px); }
+
+/* ============================================================
+   9. ABOUT
+   ============================================================ */
+.about-grid{ display:grid; grid-template-columns:1fr; }
+.about-bio{ max-width:760px; }
+.about-bio p{ color:var(--text); }
+.about-bio strong{ color:var(--text-bright); }
+
+/* ============================================================
+   10. SKILLS
+   ============================================================ */
+.skills-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.skill-card{ padding:22px; border-top:2px solid var(--accent, var(--cyan)); transition:transform .25s ease, box-shadow .25s ease; }
+.skill-card:hover{ transform:translateY(-4px); box-shadow:0 10px 30px -12px var(--accent, var(--cyan)); }
+.skill-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.skill-head i{ font-size:22px; color:var(--accent, var(--cyan)); width:30px; text-align:center; }
+.skill-head h4{ margin:0; font-size:15px; }
+.skill-bar-track{ height:7px; border-radius:4px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:8px; }
+.skill-bar-fill{ height:100%; width:0%; border-radius:4px; background:var(--accent, var(--cyan)); box-shadow:0 0 10px -2px var(--accent, var(--cyan)); transition:width 1.4s cubic-bezier(.16,.84,.44,1); }
+.skill-pct{ font-size:11px; color:var(--accent, var(--green)); float:right; margin-top:-24px; position:relative; }
+.skill-sub{ font-size:11px; color:var(--text-dim); margin-top:10px; }
+
+/* ============================================================
+   11. PROJECTS
+   ============================================================ */
+.projects-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.project-card{ padding:0; overflow:hidden; display:flex; flex-direction:column; }
+.project-card canvas{ width:100%; height:150px; display:block; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); }
+.project-body{ padding:20px; flex:1; display:flex; flex-direction:column; }
+.project-body h4{ font-size:16px; }
+.project-body p{ font-size:12.5px; color:var(--text-dim); flex:1; }
+.tag-row{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+.tag-chip{ font-size:10px; padding:4px 9px; border-radius:20px; border:1px solid var(--border); color:var(--cyan); }
+.project-link{ font-size:12px; color:var(--green); display:inline-flex; align-items:center; gap:6px; }
+
+/* ============================================================
+   14. EDUCATION TIMELINE
+   ============================================================ */
+.timeline-group{ max-width:760px; margin:0 auto 48px; }
+.timeline-group:last-child{ margin-bottom:0; }
+.timeline-heading{ font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--cyan); margin-bottom:20px; }
+.timeline{ position:relative; padding-left:34px; }
+.timeline::before{ content:''; position:absolute; left:8px; top:6px; bottom:6px; width:2px; background:var(--border); }
+.timeline-item{ position:relative; padding:0 0 34px 26px; }
+.timeline-item::before{
+  content:''; position:absolute; left:-34px; top:4px; width:14px; height:14px; border-radius:50%;
+  background:var(--bg); border:2px solid var(--success); box-shadow:0 0 10px var(--success-dim);
+}
+.timeline-item.progress::before{ border-color:var(--yellow); box-shadow:0 0 10px rgba(255,140,66,.4); }
+.ti-card{ padding:18px 22px; }
+.ti-top{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:6px; }
+.ti-top h4{ font-size:15px; margin:0; }
+.ti-dates{ font-size:11px; color:var(--text-dim); }
+.badge{ font-size:10px; padding:4px 10px; border-radius:20px; letter-spacing:.5px; text-transform:uppercase; }
+.badge.done{ background:rgba(74,222,128,0.12); color:var(--success); border:1px solid var(--success-dim); }
+.badge.wip{ background:rgba(255,140,66,0.12); color:var(--yellow); border:1px solid rgba(255,140,66,.4); }
+.ti-org{ font-size:12.5px; color:var(--cyan); }
+
+/* ============================================================
+   15. CONTACT
+   ============================================================ */
+.contact-grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:50px; }
+.contact-links{ margin-top:20px; display:flex; flex-direction:column; gap:14px; }
+.contact-link{ display:flex; align-items:center; gap:14px; font-size:13.5px; color:var(--text-bright); }
+.contact-link i{ width:38px; height:38px; border-radius:50%; border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; color:var(--green); }
+.open-panel{ padding:26px; margin-top:28px; }
+.avail-dot{ width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); display:inline-block; margin-right:8px; animation:pulse 1.6s infinite; }
+.role-list li{ padding:9px 0; border-top:1px solid var(--border); font-size:12.5px; display:flex; gap:10px; align-items:center; }
+.role-list li i{ color:var(--cyan); }
+
+.contact-form-panel{ padding:28px; align-self:start; }
+.form-head{
+  display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-dim);
+  padding-bottom:14px; margin-bottom:18px; border-bottom:1px solid var(--border); letter-spacing:.5px;
+}
+.form-head i{ color:var(--cyan); }
+.form-label{
+  display:block; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--cyan); margin:16px 0 6px;
+}
+.form-label:first-of-type{ margin-top:0; }
+#contact-form input, #contact-form textarea{
+  width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border);
+  border-radius:8px; padding:11px 13px; color:var(--text-bright); font-family:var(--mono);
+  font-size:13px; outline:none; transition:border-color .2s, box-shadow .2s;
+}
+#contact-form input:focus, #contact-form textarea:focus{
+  border-color:var(--cyan); box-shadow:0 0 0 3px var(--cyan-dim);
+}
+#contact-form textarea{ resize:vertical; min-height:110px; }
+.form-submit{ width:100%; justify-content:center; margin-top:20px; }
+.form-status{ margin-top:14px; font-size:12px; min-height:16px; }
+.form-status.success{ color:var(--success); }
+.form-status.error{ color:var(--red); }
+
+/* ============================================================
+   16. FOOTER
+   ============================================================ */
+footer{ padding:50px 0 40px; border-top:1px solid var(--border); text-align:center; }
+.footer-brand{ font-family:var(--display); font-size:20px; color:var(--text-bright); margin-bottom:8px; }
+.footer-tag{ color:var(--text-dim); font-size:12px; margin-bottom:20px; }
+.footer-social{ display:flex; justify-content:center; gap:16px; }
+.footer-social a{ width:38px; height:38px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-dim); }
+.footer-social a:hover{ color:var(--green); border-color:var(--green); }
+
+/* ============================================================
+   17. BACK TO TOP
+   ============================================================ */
+#back-to-top{
+  position:fixed; bottom:28px; right:28px; z-index:400; width:46px; height:46px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:var(--green); cursor:pointer;
+  opacity:0; pointer-events:none; transform:translateY(10px); transition:.3s;
+}
+#back-to-top.show{ opacity:1; pointer-events:auto; transform:translateY(0); }
+
+/* ============================================================
+   18. RESPONSIVE
+   ============================================================ */
+@media (max-width:900px){
+  .nav-links{ display:none; }
+  .hamburger{ display:flex; }
+  .contact-grid{ grid-template-columns:1fr; }
+  .skills-grid{ grid-template-columns:repeat(2,1fr); }
+  .projects-grid{ grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width:600px){
+  section{ padding:64px 0; }
+  .section-inner{ padding:0 18px; }
+  .skills-grid{ grid-template-columns:1fr; }
+  .projects-grid{ grid-template-columns:1fr; }
+  .contact-grid{ gap:28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= CURSOR ================= -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<!-- ================= CANVAS BG + EMOJI ================= -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ================= BOOT LOADER ================= -->
+<div id="loader">
+  <div class="loader-box">
+    <div class="loader-title">[ <span data-i18n="loaderBoot">SYSTEM BOOT</span> ] <span data-i18n="loaderEngine">Portfolio render engine</span></div>
+    <div id="boot-log"></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label"><span id="progress-text">0%</span><span data-i18n="loaderProgress">booting cluster...</span></div>
+  </div>
+</div>
+
+<!-- ================= NAV ================= -->
+<nav id="site-nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="b">Jayanth</span></div>
+    <div class="nav-links" id="nav-links">
+      <a href="#hero" data-nav data-i18n="navHome">Home</a>
+      <a href="#about" data-nav data-i18n="navAbout">About</a>
+      <a href="#skills" data-nav data-i18n="navSkills">Skills</a>
+      <a href="#projects" data-nav data-i18n="navProjects">Projects</a>
+      <a href="#myjourney" data-nav data-i18n="navmyjourney">My Journey</a>
+      <a href="#contact" data-nav data-i18n="navContact">Contact</a>
+    </div>
+    <div class="lang-switch" id="lang-switch">
+      <button type="button" data-lang="en" class="active">EN</button>
+      <button type="button" data-lang="de">DE</button>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-panel" id="mobile-panel">
+    <a href="#hero" data-i18n="navHome">Home</a>
+    <a href="#about" data-i18n="navAbout">About</a>
+    <a href="#skills" data-i18n="navSkills">Skills</a>
+    <a href="#projects" data-i18n="navProjects">Projects</a>
+    <a href="#myjourney" data-i18n="navmyjourney">My Journey</a>
+    <a href="#contact" data-i18n="navContact">Contact</a>
+    <div class="mobile-lang-switch" id="mobile-lang-switch">
+      <div class="lang-switch">
+        <button type="button" data-lang="en" class="active">EN</button>
+        <button type="button" data-lang="de">DE</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<section id="hero">
+  <div class="section-inner">
+    <div class="hero-eyebrow"><span class="dot-live"></span><span data-i18n="heroEyebrow">ALL SYSTEMS OPERATIONAL</span></div>
+    <h1 class="hero-name"> Jayanth Shivanandappa <br><span class="accent" data-i18n="heroRole">DevOps Engineer</span></h1>
+    <div class="hero-type"><span data-i18n="heroTypePrefix">I build</span> <span id="typewriter"></span><span class="cur">_</span></div>
+    <div class="cta-row">
+      <a href="#projects" class="btn btn-primary"><i class="fa-solid fa-diagram-project"></i><span data-i18n="ctaProjects">View Projects</span></a>
+      <a href="https://github.com/Shivanandappa" target="_blank" rel="noopener" class="btn"><i class="fa-brands fa-github"></i>GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section id="about">
+  <div class="section-inner">
+    <div class="reveal about-grid">
+      <div class="about-bio">
+        <div class="eyebrow" data-i18n="aboutEyebrow">About</div>
+        <h2 class="section-title" data-i18n="aboutTitle">"I bridge the gap between 'it works on my machine' and production".</h2>
+        <p data-i18n-html="aboutP1">I am a passionate <strong>DevOps & Platform Engineer</strong> holding Master's degrees in Computer Science as well as a Certified Kubernetes Administrator (CKA) certification. </p>
+        <p data-i18n-html="aboutP2"> My career, spanning over five years, combines the best of software development, data analysis, and cloud infrastructure. I love automating complex systems based on the "Secure & Stable by Design" principle and acting as a bridge between development and operations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SKILLS ================= -->
+<section id="skills">
+  <div class="section-inner">
+    <div class="reveal section-head">
+      <div class="eyebrow" data-i18n="skillsEyebrow">Toolchain</div>
+      <h2 class="section-title" data-i18n="skillsTitle">Skills &amp; Stack</h2>
+    </div>
+    <div class="skills-grid" id="skills-grid"></div>
+  </div>
+</section>
+
+<!-- ================= PROJECTS ================= -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="reveal section-head">
+      <div class="eyebrow" data-i18n="projectsEyebrow">Selected Work</div>
+      <h2 class="section-title" data-i18n="projectsTitle">Projects</h2>
+    </div>
+    <div class="projects-grid" id="projects-grid"></div>
+  </div>
+</section>
+
+<!-- ================= EXPERIENCE / EDUCATION / CERTIFICATIONS ================= -->
+<section id="myjourney">
+  <div class="section-inner">
+    <div class="reveal section-head">
+      <div class="eyebrow" data-i18n="educationEyebrow">Background</div>
+      <h2 class="section-title" data-i18n="educationTitle">My Journey</h2>
+    </div>
+    <div class="reveal timeline-group">
+      <h3 class="timeline-heading" data-i18n="experienceHeading">Experience</h3>
+      <div class="timeline" id="timeline-experience"></div>
+    </div>
+    <div class="reveal timeline-group">
+      <h3 class="timeline-heading" data-i18n="educationHeading">Education</h3>
+      <div class="timeline" id="timeline-education"></div>
+    </div>
+    <div class="reveal timeline-group">
+      <h3 class="timeline-heading" data-i18n="certificationsHeading">Certifications</h3>
+      <div class="timeline" id="timeline-certifications"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="reveal contact-grid">
+      <div>
+        <div class="eyebrow" data-i18n="contactEyebrow">Get In Touch</div>
+        <h2 class="section-title" data-i18n="contactTitle">Have an infrastructure challenge? Let's talk.</h2>
+        <p data-i18n="contactIntro" style="color:var(--text-dim);max-width:480px;">Open to full-time roles, Reach out through .</p>
+        <div class="contact-links">
+          <a class="contact-link" href="mailto:jayanth.shivanandappa@example.com"><i class="fa-solid fa-envelope"></i>jayanth.shivanandappa@gmail.com</a>
+          <!-- <a class="contact-link" href="tel:+15555550142"><i class="fa-solid fa-phone"></i>+1 (555) 555-0142</a> -->
+          <a class="contact-link" href="https://linkedin.com/" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i>linkedin.com/in/jayanth-shivanandappa-59bbb71ba/</a>
+          <a class="contact-link" href="https://github.com/" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i>github.com/Shivanandappa</a>
+        </div>
+        <div class="glass open-panel">
+          <h4><span class="avail-dot"></span><span data-i18n="openToWork">Open to Work</span></h4>
+          <p data-i18n="openToWorkDesc" style="font-size:12.5px;color:var(--text-dim);">Actively considering new opportunities starting immediately.</p>
+          <ul class="role-list">
+            <li><i class="fa-solid fa-cloud"></i><span data-i18n="roleCloud">Cloud / Platform Engineer</span></li>
+            <li><i class="fa-solid fa-gears"></i><span data-i18n="roleDevOps">DevOps / SRE Engineer</span></li>
+            <li><i class="fa-solid fa-dharmachakra"></i><span data-i18n="roleK8s">Kubernetes Engineer</span></li>
+            <!-- <li><i class="fa-solid fa-code-branch"></i>CI/CD &amp; Automation Lead</li> -->
+          </ul>
+        </div>
+      </div>
+      <div class="glass contact-form-panel">
+        <div class="form-head"><i class="fa-solid fa-terminal"></i><span data-i18n="formHead">send_message.sh</span></div>
+        <form id="contact-form" novalidate>
+          <label class="form-label" for="cf-name" data-i18n="formName">Name</label>
+          <input type="text" id="cf-name" name="name" autocomplete="name">
+          <label class="form-label" for="cf-email" data-i18n="formEmail">Email</label>
+          <input type="email" id="cf-email" name="email" autocomplete="email">
+          <label class="form-label" for="cf-message" data-i18n="formMessage">Message</label>
+          <textarea id="cf-message" name="message" rows="5"></textarea>
+          <button type="submit" class="btn btn-primary form-submit"><i class="fa-solid fa-paper-plane"></i><span data-i18n="formSend">Send Message</span></button>
+          <div class="form-status" id="form-status"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="section-inner">
+    <div class="footer-brand">Jayanth Shivanandappa </div>
+    <div class="footer-tag" data-i18n="footerTag">Pipeline. Automation. Clusters.</div>
+    <div class="footer-social">
+      <a href="https://github.com/" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i></a>
+      <a href="https://linkedin.com/" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a>
+      <a href="mailto:jayanth.shivanandappa@gmail.com"><i class="fa-solid fa-envelope"></i></a>
+    </div>
+  </div>
+</footer>
+
+<div id="back-to-top"><i class="fa-solid fa-arrow-up"></i></div>
+
+<script>
+/* ============================================================
+   DATA — shared content used by several features
+   ============================================================ */
+var SKILLS = [
+  { name:'AWS', icon:'fa-brands fa-aws', pct:92, tags:'EC2 · S3 · Lambda · EKS · IAM', color:'#d4af37' },
+  { name:'Azure DevOps', icon:'fa-solid fa-infinity', pct:85, tags:'Pipelines · Boards · Artifacts · Self-hosted Agents', color:'#0078d4' },
+  { name:'Terraform', icon:'fa-solid fa-cubes', pct:90, tags:'Modules · State · Workspaces', color:'#a78bfa' },
+  { name:'Docker', icon:'fa-brands fa-docker', pct:94, tags:'Compose · Multi-stage · Registries', color:'#38bdf8' },
+  { name:'Kubernetes', icon:'fa-solid fa-dharmachakra', pct:88, tags:'Helm · Ingress · Operators', color:'#6366f1' },
+  { name:'GitHub Actions', icon:'fa-brands fa-GitHub Actions', pct:85, tags: 'CI/CD · Workflows · Runners', color:'#f87171' },
+  { name:'Ansible', icon:'fa-solid fa-robot', pct:82, tags:'Playbooks · Roles · Vault', color:'#4ade80' },
+  { name:'Linux', icon:'fa-brands fa-linux', pct:95, tags:'Bash · systemd · Networking', color:'#e8c547' },
+  { name:'Java / Spring Boot', icon:'fa-brands fa-java', pct:80, tags:'REST · Microservices · JVM tuning', color:'#ff8c42' },
+  { name:'Python', icon:'fa-brands fa-python', pct:90, tags:'OOP · Scripting · API', color:'#3776ab' },
+  { name:'SQL', icon:'fa-solid fa-database', pct:85, tags:'MySQL · PostgreSQL · SQL Server', color:'#e8c547' },
+  { name:'Vagrant', icon:'fa-solid fa-box-open', pct:80, tags:'Vagrantfile · Provisioning · Providers · Boxes', color:'#1889c4' }
+];
+
+var GITHUB_USERNAME = 'Shivanandappa';
+
+var PROJECTS = [
+  {
+    title:{ en:'IoT Platform Automation', de:'IoT-Plattform-Automatisierung' },
+    desc:{
+      en:'Automated IoT platform on AWS using Python, AWS CDK, and Lambda for scalable device ingestion and management.',
+      de:'Automatisierte IoT-Plattform auf AWS mit Python, AWS CDK und Lambda für skalierbare Geräteanbindung und verwaltung.'
+    },
+    tags:['AWS','Python','AWS CDK','Lambda'],
+    diagram:['AWS','Python','Lambda','IoT Core'],
+    github:'https://github.com/Shivanandappa/IoT-cloud-smartmonitoring.git'
+  },
+  {
+    title:{ en:'CI/CD Pipeline Automation', de:'CI/CD-Pipeline-Automatisierung' },
+    desc:{
+      en: 'A Spring Boot 3 / Java 21 web application with REST APIs, Actuator monitoring, and an embedded Pac-Man game (JavaFX)' ,
+         
+      de:'Eine Spring Boot 3 / Java 21-Webanwendung mit REST-APIs, Actuator-Monitoring und einem eingebetteten Pac-Man-Spiel (JavaFX).'
+    },
+    tags:['Java','Spring Boot','Kubernetes','Traefix','Github Actions','Prometheus','Grafana','Loki','Alertmanager'],
+    diagram:['Spring Boot','Kubernetes','Github Actions','Sonar Qube'],
+    github:'https://github.com/Shivanandappa/java-ci-cd-pipeline.git'
+  }
+ 
+];
+
+var EXPERIENCE = [
+  { title:{en:'DevOps Engineer Manager', de:'DevOps Engineering Manager'}, org:'Foconis GmbH', dates:{en:'2025 — 2026', de:'2025 — 2026'}, status:'done' },
+  { title:{en:'Cloud DevOps Engineer', de:'Cloud DevOps Engineer'}, org:'CANCOM', dates:{en:'2024 — 2025', de:'2024 — 2025'}, status:'done' },
+  { title:{en:'Software and Data Technology Engineer', de:'Software- und Datentechnologie-Ingenieur'}, org:'Invensity GmbH', dates:{en:'2022 — 2023', de:'2022 — 2023'}, status:'done' },
+  { title:{en:'Data Analyst', de:'Datenanalyst'}, org:'Accenture', dates:{en:'2018 — 2020', de:'2018 — 2020'}, status:'done' }
+];
+
+var EDUCATION = [
+  { title:{en:'Master in Machine learning and Data Analytics', de:'Master im Maschinelles Lernen und Datenanalyse'}, org:'Hochschule Aalen', dates:{en:'2022 — 2023', de:'2022 — 2023'}, status:'done' },
+  { title:{en:'Master in Informatik', de:'Master in Informatik'}, org:'UNiversität Miskolc', dates:{en:'2020 — 2023', de:'2020 — 2023'}, status:'done' }
+];
+
+var CERTIFICATIONS = [
+  { title:{en:'Certified Kubernetes Administrator (CKA)', de:'Certified Kubernetes Administrator (CKA)'}, org:'KodeKloud', dates:{en:'2026', de:'2026'}, status:'done' },
+  { title:{en:'Terraform Associate Certification: HashiCorp Certified', de:'Terraform Associate Certification: HashiCorp Certified'}, org:'Kodekloud', dates:{en:'2026', de:'2026'}, status:'done' }
+];
+
+/* ============================================================
+   FEATURE: LANGUAGE SWITCHER (EN / DE)
+   ============================================================
+   Any feature that needs to react to a language change (restart
+   the typewriter, re-render generated text, etc.) pushes a
+   callback into LANG_LISTENERS. setLanguage() runs them all. */
+var LANG = 'en';
+var LANG_LISTENERS = [];
+
+var I18N = {
+  en: {
+    navHome:'Home', navAbout:'About', navSkills:'Skills', navProjects:'Projects',
+    navmyjourney:'My Journey', navContact:'Contact',
+    heroEyebrow:'ALL SYSTEMS OPERATIONAL', heroTypePrefix:'I build', heroRole:'DevOps Engineer',
+    ctaProjects:'View Projects',
+    loaderBoot:'SYSTEM BOOT', loaderEngine:'Portfolio render engine', loaderProgress:'booting cluster...',
+    aboutEyebrow:'About',
+    aboutTitle:'"I bridge the gap between \'it works on my machine\' and production".',
+    aboutP1:'I am a passionate <strong>DevOps &amp; Platform Engineer</strong> holding Master\'s degrees in Computer Science as well as a Certified Kubernetes Administrator (CKA) certification.',
+    aboutP2:'My career, spanning over five years, combines the best of software development, data analysis, and cloud infrastructure. I love automating complex systems based on the "Secure &amp; Stable by Design" principle and acting as a bridge between development and operations.',
+    skillsEyebrow:'Toolchain', skillsTitle:'Skills & Stack',
+    projectsEyebrow:'Selected Work', projectsTitle:'Projects', projectGitHub:'View on GitHub',
+    educationEyebrow:'Background', educationTitle:'My Journey',
+    experienceHeading:'Experience', educationHeading:'Education', certificationsHeading:'Certifications',
+    badgeDone:'Completed', badgeWip:'In Progress', badgeCurrent:'Current',
+    contactEyebrow:'Get In Touch', contactTitle:'Have an infrastructure challenge? Let\'s talk.',
+    contactIntro:'Open to full-time roles, Reach out through .',
+    openToWork:'Open to Work', openToWorkDesc:'Actively considering new opportunities starting immediately.',
+    roleCloud:'Cloud / Platform Engineer', roleDevOps:'DevOps / SRE Engineer', roleK8s:'Kubernetes Engineer',
+    formHead:'send_message.sh', formName:'Name', formEmail:'Email', formMessage:'Message', formSend:'Send Message',
+    formValidation:'Please fill in every field first.',
+    formOpening:'Opening your email client...',
+    footerTag:'Pipeline. Automation. Clusters.',
+    typewriterPhrases:[
+      'reliable infrastructure.',
+      'scalable on-prem and cloud solutions.',
+      'automated CI/CD pipelines.',
+      'self-healing systems.',
+      'infrastructure as code.'
+    ],
+    bootLines:[
+      ['BOOT','Initializing kernel modules...'],
+      ['OK','Kernel modules loaded'],
+      ['BOOT','Mounting root filesystem...'],
+      ['INFO','Starting network stack...'],
+      ['BOOT','Connecting to Kubernetes control plane...'],
+      ['OK','Connected to cluster devops-center-prod'],
+      ['INFO','Checking etcd cluster health...'],
+      ['OK','etcd quorum healthy (3/3 members)'],
+      ['INFO','Reaching kube-apiserver...'],
+      ['OK','kube-apiserver responded 200 OK'],
+      ['BOOT','Registering node with kubelet...'],
+      ['INFO','Initializing CNI plugin...'],
+      ['OK','Pod networking online'],
+      ['INFO','Starting CoreDNS...'],
+      ['OK','CoreDNS resolving cluster.local'],
+      ['INFO','Pulling container images...'],
+      ['BOOT','Establishing Terraform state lock...'],
+      ['OK','State lock acquired'],
+      ['INFO','Loading CI/CD pipeline definitions...'],
+      ['BOOT','Starting portfolio render engine...'],
+      ['OK','All systems nominal. Welcome.']
+    ]
+  },
+  de: {
+    navHome:'Startseite', navAbout:'Über mich', navSkills:'Skills', navProjects:'Projekte',
+    navmyjourney:'Werdegang', navContact:'Kontakt',
+    heroEyebrow:'ALLE SYSTEME BETRIEBSBEREIT', heroTypePrefix:'Ich baue', heroRole:'DevOps Engineer',
+    ctaProjects:'Projekte ansehen',
+    loaderBoot:'SYSTEM-START', loaderEngine:'Portfolio-Render-Engine', loaderProgress:'Cluster wird gestartet...',
+    aboutEyebrow:'Über mich',
+    aboutTitle:'„Ich schließe die Lücke zwischen ‚läuft auf meinem Rechner‘ und Produktion".',
+    aboutP1:'Ich bin ein leidenschaftlicher <strong>DevOps- &amp; Platform Engineer</strong> mit zwei Masterabschlüssen in Informatik sowie der Zertifizierung Certified Kubernetes Administrator (CKA).',
+    aboutP2:'Meine über fünf Jahre Berufserfahrung vereint Softwareentwicklung, Datenanalyse und Cloud-Infrastruktur. Ich automatisiere komplexe Systeme nach dem Prinzip „Secure &amp; Stable by Design" und verbinde Entwicklung und Betrieb.',
+    skillsEyebrow:'Toolchain', skillsTitle:'Fähigkeiten & Stack',
+    projectsEyebrow:'Ausgewählte Projekte', projectsTitle:'Projekte', projectGitHub:'Auf GitHub ansehen',
+    educationEyebrow:'Werdegang', educationTitle:'Mein Werdegang',
+    experienceHeading:'Berufserfahrung', educationHeading:'Ausbildung', certificationsHeading:'Zertifizierungen',
+    badgeDone:'Abgeschlossen', badgeWip:'In Bearbeitung', badgeCurrent:'Aktuell',
+    contactEyebrow:'Kontakt aufnehmen', contactTitle:'Infrastruktur-Herausforderung? Lass uns reden.',
+    contactIntro:'Offen für Festanstellungen, Projektarbeit und spannende Infrastruktur-Probleme. Melde dich über den Kanal, den du tatsächlich nutzt.',
+    openToWork:'Offen für neue Aufgaben', openToWorkDesc:'Ich prüfe aktiv neue Möglichkeiten, sofort verfügbar.',
+    roleCloud:'Cloud- / Platform Engineer', roleDevOps:'DevOps- / SRE Engineer', roleK8s:'Kubernetes Engineer',
+    formHead:'send_message.sh', formName:'Name', formEmail:'E-Mail', formMessage:'Nachricht', formSend:'Nachricht senden',
+    formValidation:'Bitte zuerst alle Felder ausfüllen.',
+    formOpening:'E-Mail-Programm wird geöffnet...',
+    footerTag:'Pipeline. Automation. Clusters',
+    typewriterPhrases:[
+      'zuverlässige Infrastruktur.',
+      'skalierbare On-Prem- und Cloud-Lösungen.',
+      'automatisierte CI/CD-Pipelines.',
+      'selbstheilende Systeme.',
+      'Infrastructure as Code.'
+    ],
+    bootLines:[
+      ['BOOT','Kernel-Module werden initialisiert...'],
+      ['OK','Kernel-Module geladen'],
+      ['BOOT','Root-Dateisystem wird eingehängt...'],
+      ['INFO','Netzwerk-Stack wird gestartet...'],
+      ['BOOT','Verbindung zum Kubernetes-Control-Plane...'],
+      ['OK','Mit Cluster devops-center-prod verbunden'],
+      ['INFO','etcd-Cluster-Gesundheit wird geprüft...'],
+      ['OK','etcd-Quorum gesund (3/3 Mitglieder)'],
+      ['INFO','kube-apiserver wird erreicht...'],
+      ['OK','kube-apiserver antwortete 200 OK'],
+      ['BOOT','Node wird bei kubelet registriert...'],
+      ['INFO','CNI-Plugin wird initialisiert...'],
+      ['OK','Pod-Netzwerk online'],
+      ['INFO','CoreDNS wird gestartet...'],
+      ['OK','CoreDNS löst cluster.local auf'],
+      ['INFO','Container-Images werden geladen...'],
+      ['BOOT','Terraform-State-Lock wird hergestellt...'],
+      ['OK','State-Lock erworben'],
+      ['INFO','CI/CD-Pipeline-Definitionen werden geladen...'],
+      ['BOOT','Portfolio-Render-Engine wird gestartet...'],
+      ['OK','Alle Systeme nominal. Willkommen.']
+    ]
+  }
+};
+
+function applyStaticI18n(lang){
+  var dict = I18N[lang];
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-html');
+    if(dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-placeholder');
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+}
+
+function setLanguage(lang){
+  if(!I18N[lang]) return;
+  LANG = lang;
+  document.documentElement.lang = lang;
+  applyStaticI18n(lang);
+  document.querySelectorAll('.lang-switch button').forEach(function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  });
+  LANG_LISTENERS.forEach(function(fn){ fn(lang); });
+  try{ localStorage.setItem('lang', lang); }catch(e){}
+}
+
+(function LanguageSwitcher(){
+  document.querySelectorAll('.lang-switch button').forEach(function(btn){
+    btn.addEventListener('click', function(){ setLanguage(btn.getAttribute('data-lang')); });
+  });
+})();
+
+/* ============================================================
+   FEATURE: BOOT SEQUENCE LOADING SCREEN
+   ============================================================ */
+(function BootSequence(){
+  var bootLang = 'en';
+  try{
+    var saved = localStorage.getItem('lang');
+    if(saved && I18N[saved]) bootLang = saved;
+  }catch(e){}
+  var lines = I18N[bootLang].bootLines;
+  var logEl = document.getElementById('boot-log');
+  var fill = document.getElementById('progress-fill');
+  var pctText = document.getElementById('progress-text');
+  var loader = document.getElementById('loader');
+  var i = 0;
+
+  function tagClass(tag){
+    if(tag==='BOOT') return 'tag-boot';
+    if(tag==='OK') return 'tag-ok';
+    if(tag==='WARN') return 'tag-warn';
+    return 'tag-info';
+  }
+
+  function typeLine(){
+    if(i >= lines.length){
+      setTimeout(finish, 350);
+      return;
+    }
+    var pair = lines[i];
+    var div = document.createElement('div');
+    div.innerHTML = '[<span class="'+tagClass(pair[0])+'">'+pair[0]+'</span>] '+pair[1];
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+    i++;
+    var pct = Math.round((i/lines.length)*100);
+    fill.style.width = pct+'%';
+    pctText.textContent = pct+'%';
+    setTimeout(typeLine, 90 + Math.random()*90);
+  }
+
+  function finish(){
+    loader.classList.add('hide');
+    document.body.style.overflow = '';
+    setTimeout(function(){ loader.style.display = 'none'; }, 650);
+  }
+
+  document.body.style.overflow = 'hidden';
+  setTimeout(typeLine, 300);
+})();
+
+/* ============================================================
+   FEATURE: CUSTOM CURSOR
+   ============================================================ */
+(function CustomCursor(){
+  var isCoarse = window.matchMedia('(pointer:coarse)').matches || window.innerWidth <= 600;
+  if(isCoarse) return;
+
+  var ring = document.getElementById('cursor-ring');
+  var dot = document.getElementById('cursor-dot');
+  var rx=0, ry=0, mx=0, my=0;
+
+  window.addEventListener('mousemove', function(e){
+    mx = e.clientX; my = e.clientY;
+    dot.style.left = mx+'px'; dot.style.top = my+'px';
+  });
+
+  function loop(){
+    rx += (mx-rx)*0.18; ry += (my-ry)*0.18;
+    ring.style.left = rx+'px'; ring.style.top = ry+'px';
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  var hoverSelector = 'a, button, input, .hint-chip, [data-nav], .btn';
+  document.addEventListener('mouseover', function(e){
+    if(e.target.closest(hoverSelector)) ring.classList.add('hover');
+  });
+  document.addEventListener('mouseout', function(e){
+    if(e.target.closest(hoverSelector)) ring.classList.remove('hover');
+  });
+})();
+
+/* ============================================================
+   FEATURE: CANVAS PARTICLE NETWORK BACKGROUND
+   ============================================================ */
+(function ParticleBackground(){
+  var canvas = document.getElementById('bg-canvas');
+  var ctx = canvas.getContext('2d');
+  var W, H, particles = [];
+  var mouse = { x:null, y:null };
+  var COUNT = Math.min(90, Math.floor(window.innerWidth/16));
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function Particle(){
+    this.x = Math.random()*W;
+    this.y = Math.random()*H;
+    this.vx = (Math.random()-0.5)*0.4;
+    this.vy = (Math.random()-0.5)*0.4;
+    this.r = 1.4 + Math.random()*1.2;
+  }
+  for(var i=0;i<COUNT;i++) particles.push(new Particle());
+
+  window.addEventListener('mousemove', function(e){ mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseout', function(){ mouse.x = null; mouse.y = null; });
+
+  function step(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      var p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0 || p.x > W) p.vx *= -1;
+      if(p.y < 0 || p.y > H) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(232,197,71,0.55)';
+      ctx.fill();
+
+      for(var j=i+1;j<particles.length;j++){
+        var q = particles[j];
+        var dx=p.x-q.x, dy=p.y-q.y, dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist < 120){
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(212,175,55,'+(0.18*(1-dist/120))+')';
+          ctx.lineWidth = 1;
+          ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
+          ctx.stroke();
+        }
+      }
+      if(mouse.x !== null){
+        var mdx=p.x-mouse.x, mdy=p.y-mouse.y, mdist=Math.sqrt(mdx*mdx+mdy*mdy);
+        if(mdist < 160){
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(232,197,71,'+(0.3*(1-mdist/160))+')';
+          ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y);
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+/* ============================================================
+   FEATURE: TYPEWRITER EFFECT
+   ============================================================ */
+(function Typewriter(){
+  var el = document.getElementById('typewriter');
+  var phrases = I18N[LANG].typewriterPhrases;
+  var pIdx=0, cIdx=0, deleting=false;
+  var generation = 0;
+
+  function tick(gen){
+    if(gen !== generation) return; // a language switch invalidated this loop
+    var phrase = phrases[pIdx];
+    if(!deleting){
+      cIdx++;
+      el.textContent = phrase.slice(0,cIdx);
+      if(cIdx === phrase.length){
+        deleting = true;
+        setTimeout(function(){ tick(gen); }, 1400);
+        return;
+      }
+    } else {
+      cIdx--;
+      el.textContent = phrase.slice(0,cIdx);
+      if(cIdx === 0){
+        deleting = false;
+        pIdx = (pIdx+1) % phrases.length;
+      }
+    }
+    setTimeout(function(){ tick(gen); }, deleting ? 35 : 65);
+  }
+  tick(generation);
+
+  LANG_LISTENERS.push(function(lang){
+    generation++; // stop the in-flight loop for the old language
+    phrases = I18N[lang].typewriterPhrases;
+    pIdx = 0; cIdx = 0; deleting = false;
+    el.textContent = '';
+    tick(generation);
+  });
+})();
+
+/* ============================================================
+   FEATURE: NAV / SCROLL-SPY / HAMBURGER / BACK-TO-TOP
+   ============================================================ */
+(function NavAndScroll(){
+  var hamburger = document.getElementById('hamburger');
+  var mobilePanel = document.getElementById('mobile-panel');
+  hamburger.addEventListener('click', function(){
+    hamburger.classList.toggle('open');
+    mobilePanel.classList.toggle('open');
+  });
+  mobilePanel.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      hamburger.classList.remove('open');
+      mobilePanel.classList.remove('open');
+    });
+  });
+
+  var navLinks = document.querySelectorAll('#nav-links a');
+  var sections = document.querySelectorAll('section[id]');
+  var spy = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        var id = entry.target.getAttribute('id');
+        navLinks.forEach(function(a){
+          a.classList.toggle('active', a.getAttribute('href') === '#'+id);
+        });
+      }
+    });
+  }, { rootMargin:'-40% 0px -55% 0px' });
+  sections.forEach(function(s){ spy.observe(s); });
+
+  var backBtn = document.getElementById('back-to-top');
+  var heroEl = document.getElementById('hero');
+  window.addEventListener('scroll', function(){
+    backBtn.classList.toggle('show', window.scrollY > heroEl.offsetHeight * 0.8);
+  });
+  backBtn.addEventListener('click', function(){
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+})();
+
+/* ============================================================
+   FEATURE: REVEAL ON SCROLL
+   ============================================================ */
+(function RevealOnScroll(){
+  var els = document.querySelectorAll('.reveal');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.15 });
+  els.forEach(function(el){ io.observe(el); });
+})();
+
+/* ============================================================
+   FEATURE: SKILL CARDS + ANIMATED PROFICIENCY BARS
+   ============================================================ */
+(function SkillsGrid(){
+  var grid = document.getElementById('skills-grid');
+  SKILLS.forEach(function(s){
+    var card = document.createElement('div');
+    card.className = 'glass skill-card reveal';
+    card.style.setProperty('--accent', s.color);
+    card.innerHTML =
+      '<div class="skill-head"><i class="'+s.icon+'"></i><h4>'+s.name+'</h4></div>' +
+      '<div class="skill-bar-track"><div class="skill-bar-fill" data-pct="'+s.pct+'"></div></div>' +
+      '<div class="skill-pct">'+s.pct+'%</div>' +
+      '<div class="skill-sub">'+s.tags+'</div>';
+    grid.appendChild(card);
+  });
+
+  var bars = grid.querySelectorAll('.skill-bar-fill');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        var el = entry.target;
+        el.style.width = el.getAttribute('data-pct')+'%';
+        io.unobserve(el);
+      }
+    });
+  }, { threshold:0.4 });
+  bars.forEach(function(b){ io.observe(b); });
+
+  // re-run reveal observer for dynamically added cards
+  var revealIo = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){ entry.target.classList.add('visible'); revealIo.unobserve(entry.target); }
+    });
+  }, { threshold:0.1 });
+  grid.querySelectorAll('.reveal').forEach(function(el){ revealIo.observe(el); });
+})();
+
+/* ============================================================
+   FEATURE: PROJECT CARDS + CANVAS ARCHITECTURE DIAGRAMS
+   ============================================================ */
+(function ProjectsGrid(){
+  var grid = document.getElementById('projects-grid');
+
+  PROJECTS.forEach(function(p, idx){
+    var card = document.createElement('div');
+    card.className = 'glass project-card reveal';
+    var canvasId = 'proj-canvas-'+idx;
+    var linkHtml = p.github
+      ? '<a class="project-link" href="'+p.github+'" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i><span data-i18n="projectGitHub">'+I18N[LANG].projectGitHub+'</span></a>'
+      : '';
+    card.innerHTML =
+      '<canvas id="'+canvasId+'"></canvas>' +
+      '<div class="project-body">' +
+        '<h4 data-title-idx="'+idx+'">'+p.title[LANG]+'</h4>' +
+        '<p data-desc-idx="'+idx+'">'+p.desc[LANG]+'</p>' +
+        '<div class="tag-row">'+p.tags.map(function(t){ return '<span class="tag-chip">'+t+'</span>'; }).join('')+'</div>' +
+        linkHtml +
+      '</div>';
+    grid.appendChild(card);
+  });
+
+  // RevealOnScroll's observer already ran and missed these cards since
+  // they didn't exist in the DOM yet — observe them here instead.
+  var revealIo = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){ entry.target.classList.add('visible'); revealIo.unobserve(entry.target); }
+    });
+  }, { threshold:0.1 });
+  grid.querySelectorAll('.reveal').forEach(function(el){ revealIo.observe(el); });
+
+  LANG_LISTENERS.push(function(lang){
+    grid.querySelectorAll('[data-desc-idx]').forEach(function(el){
+      var idx = +el.getAttribute('data-desc-idx');
+      el.textContent = PROJECTS[idx].desc[lang];
+    });
+    grid.querySelectorAll('[data-title-idx]').forEach(function(el){
+      var idx = +el.getAttribute('data-title-idx');
+      el.textContent = PROJECTS[idx].title[lang];
+    });
+    grid.querySelectorAll('[data-i18n="projectGitHub"]').forEach(function(el){
+      el.textContent = I18N[lang].projectGitHub;
+    });
+  });
+
+  function drawDiagram(canvas, labels){
+    var ctx = canvas.getContext('2d');
+    var ratio = window.devicePixelRatio || 1;
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w*ratio; canvas.height = h*ratio;
+    ctx.scale(ratio, ratio);
+    ctx.clearRect(0,0,w,h);
+
+    var n = labels.length;
+    var boxW = 84, boxH = 40;
+    var gap = (w - n*boxW) / (n+1);
+    var y = h/2 - boxH/2;
+
+    var centers = [];
+    for(var i=0;i<n;i++){
+      var x = gap + i*(boxW+gap);
+      centers.push({ x:x+boxW/2, y:h/2 });
+
+      ctx.fillStyle = 'rgba(212,175,55,0.06)';
+      ctx.strokeStyle = 'rgba(212,175,55,0.7)';
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, x, y, boxW, boxH, 6);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#d9d4c4';
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(labels[i], x+boxW/2, y+boxH/2);
+    }
+
+    ctx.strokeStyle = 'rgba(232,197,71,0.55)';
+    ctx.fillStyle = 'rgba(232,197,71,0.55)';
+    for(var j=0;j<centers.length-1;j++){
+      var a = centers[j], b = centers[j+1];
+      var startX = a.x + boxW/2, endX = b.x - boxW/2;
+      ctx.beginPath();
+      ctx.moveTo(startX, a.y);
+      ctx.lineTo(endX, b.y);
+      ctx.stroke();
+      // arrowhead
+      ctx.beginPath();
+      ctx.moveTo(endX, b.y);
+      ctx.lineTo(endX-7, b.y-4);
+      ctx.lineTo(endX-7, b.y+4);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function renderAll(){
+    PROJECTS.forEach(function(p, idx){
+      var c = document.getElementById('proj-canvas-'+idx);
+      if(c) drawDiagram(c, p.diagram);
+    });
+  }
+  window.addEventListener('load', renderAll);
+  window.addEventListener('resize', renderAll);
+  setTimeout(renderAll, 50);
+})();
+
+/* ============================================================
+   FEATURE: EXPERIENCE / EDUCATION / CERTIFICATIONS TIMELINES
+   ============================================================ */
+(function Timelines(){
+  var badgeLabel = { done:'badgeDone', wip:'badgeWip', current:'badgeCurrent' };
+
+  function renderInto(wrapId, data, lang){
+    var wrap = document.getElementById(wrapId);
+    wrap.innerHTML = '';
+    data.forEach(function(e){
+      var item = document.createElement('div');
+      item.className = 'timeline-item'+(e.status==='done' ? '' : ' progress');
+      item.innerHTML =
+        '<div class="glass ti-card">' +
+          '<div class="ti-top"><h4>'+e.title[lang]+'</h4>' +
+          '<span class="badge '+(e.status==='done'?'done':'wip')+'">'+I18N[lang][badgeLabel[e.status]]+'</span></div>' +
+          '<div class="ti-org">'+e.org+'</div>' +
+          '<div class="ti-dates">'+e.dates[lang]+'</div>' +
+        '</div>';
+      wrap.appendChild(item);
+    });
+  }
+
+  function renderAll(lang){
+    renderInto('timeline-experience', EXPERIENCE, lang);
+    renderInto('timeline-education', EDUCATION, lang);
+    renderInto('timeline-certifications', CERTIFICATIONS, lang);
+  }
+
+  renderAll(LANG);
+  LANG_LISTENERS.push(renderAll);
+})();
+
+/* ============================================================
+   FEATURE: CONTACT FORM 
+   ============================================================ */
+(function ContactForm(){
+  var form = document.getElementById('contact-form');
+  var status = document.getElementById('form-status');
+  var nameEl = document.getElementById('cf-name');
+  var emailEl = document.getElementById('cf-email');
+  var messageEl = document.getElementById('cf-message');
+  var TARGET_EMAIL = 'jayanth.shivanandappa@gmail.com';
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = nameEl.value.trim();
+    var email = emailEl.value.trim();
+    var message = messageEl.value.trim();
+
+    if(!name || !email || !message){
+      status.textContent = I18N[LANG].formValidation;
+      status.className = 'form-status error';
+      return;
+    }
+
+    var subject = encodeURIComponent('Portfolio contact from ' + name);
+    var body = encodeURIComponent(message + '\n\n— ' + name + ' (' + email + ')');
+    status.textContent = I18N[LANG].formOpening;
+    status.className = 'form-status success';
+    window.location.href = 'mailto:' + TARGET_EMAIL + '?subject=' + subject + '&body=' + body;
+  });
+})();
+
+/* ============================================================
+   INIT: restore persisted language preference (if any)
+   ============================================================ */
+(function RestoreLanguage(){
+  try{
+    var saved = localStorage.getItem('lang');
+    if(saved && I18N[saved]) setLanguage(saved);
+    else setLanguage('en');
+  }catch(e){ setLanguage('en'); }
+})();
+</script>
+</body>
+</html>
